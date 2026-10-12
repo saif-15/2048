@@ -45,6 +45,43 @@ An administrator account is created on first start: **admin / Admin@2048**
 
 Other settings: `DB_URL`, `PORT`, `REMEMBER_ME_KEY` (set this to a long random value in production).
 
+## Deploying on AWS EC2
+
+The app currently runs on an EC2 instance (Ubuntu) as a plain jar, with MySQL on the same machine.
+
+1. **Security group:** allow inbound SSH (22) and the app port (TCP 8080) to the instance.
+2. **Install the tools:**
+
+   ```bash
+   sudo apt update
+   sudo apt install -y openjdk-17-jdk git maven mysql-server
+   ```
+3. **Give the app a MySQL login.** On Ubuntu, MySQL's `root` user logs in through the OS (`auth_socket`) rather
+   than a password, so the app cannot connect as `root` / `root`. Set a password for it (or create a dedicated user):
+
+   ```bash
+   sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH caching_sha2_password BY 'your-password';"
+   ```
+4. **Get the code and build the jar** (tests are skipped; they run locally):
+
+   ```bash
+   git clone https://github.com/saif-15/2048.git
+   cd 2048
+   mvn clean package -DskipTests
+   ```
+
+   This produces `target/2048-1.0.jar`.
+5. **Run it:**
+
+   ```bash
+   export DB_USERNAME=root DB_PASSWORD=your-password
+   java -jar target/2048-1.0.jar
+   ```
+6. Open `http://<ec2-public-ip>:8080`.
+
+To deploy a new version: `git pull`, rebuild with `mvn clean package -DskipTests`, stop the running jar
+(<kbd>Ctrl</kbd>+<kbd>C</kbd>) and start it again.
+
 ## Tests
 
 ```powershell
