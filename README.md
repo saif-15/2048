@@ -25,7 +25,7 @@ A three-tier full-stack 2048 game: **Spring Boot 4 + Spring Security** backend, 
 
 ## Running
 
-1. Start MySQL 8 (any way you like, or `docker compose up -d`). The `game2048` database and tables are
+1. Start MySQL 8. The `game2048` database and tables are
    created automatically.
 2. Configure credentials if they are not `root` / `root`:
 
