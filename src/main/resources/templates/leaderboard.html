@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Leaderboard')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="container">
+    <h1>Leaderboard</h1>
+    <p class="muted">Players ranked by their highest score. Ties are broken by highest tile.</p>
+
+    <section class="grid-2 wide-left">
+        <div class="card">
+            <h2>Players</h2>
+            <p class="muted" th:if="${players.empty}">No ranked players yet.
+                <a sec:authorize="!isAuthenticated()" th:href="@{/register}">Sign up</a> and be the first!</p>
+            <div class="table-scroll" th:unless="${players.empty}">
+                <table class="table">
+                    <thead>
+                    <tr><th>#</th><th>Player</th><th>Best score</th><th>Best tile</th><th>Games</th><th>Wins</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="p, it : ${players.content}"
+                        th:with="r=${players.number * players.size + it.count}"
+                        th:classappend="${#authentication != null and #authentication.name == p.username} ? 'me'">
+                        <td><span class="rank-badge" th:classappend="${r <= 3 ? 'medal-' + r : ''}" th:text="${r}">1</span></td>
+                        <td>
+                            <a th:href="@{/players/{u}(u=${p.username})}" th:text="${p.nameToShow}">name</a>
+                            <span class="muted small" th:if="${p.country}" th:text="${p.country}"></span>
+                        </td>
+                        <td><strong th:text="${p.highestScore}">0</strong></td>
+                        <td><span class="tile-chip" th:classappend="'t-' + ${p.highestTile}" th:text="${p.highestTile}">2</span></td>
+                        <td th:text="${p.gamesPlayed}">0</td>
+                        <td th:text="${p.gamesWon}">0</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <nav class="pager" th:if="${players.totalPages > 1}">
+                <a th:if="${players.hasPrevious()}" th:href="@{/leaderboard(page=${players.number - 1})}">&larr; Prev</a>
+                <span th:text="'Page ' + ${players.number + 1} + ' of ' + ${players.totalPages}">Page 1</span>
+                <a th:if="${players.hasNext()}" th:href="@{/leaderboard(page=${players.number + 1})}">Next &rarr;</a>
+            </nav>
+        </div>
+
+        <div class="card">
+            <h2>Best single games</h2>
+            <p class="muted" th:if="${#lists.isEmpty(bestGames)}">No games yet.</p>
+            <ol class="rank-list" th:unless="${#lists.isEmpty(bestGames)}">
+                <li th:each="g, it : ${bestGames}">
+                    <span class="rank-badge" th:text="${it.count}">1</span>
+                    <a th:href="@{/players/{u}(u=${g.user.username})}" th:text="${g.user.nameToShow}">p</a>
+                    <span class="score" th:text="${g.score}">0</span>
+                </li>
+            </ol>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

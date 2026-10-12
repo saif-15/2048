@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Edit profile')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="container narrow-2">
+    <p><a th:href="@{/profile}">&larr; Back to profile</a></p>
+    <h1>Account settings</h1>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="grid-2">
+        <div class="card">
+            <h2>Profile</h2>
+            <form th:action="@{/profile/edit}" th:object="${profileForm}" method="post" class="form" novalidate>
+                <label>Username</label>
+                <input type="text" th:value="${player.username}" disabled>
+
+                <label for="displayName">Display name</label>
+                <input id="displayName" type="text" th:field="*{displayName}">
+                <small class="field-error" th:if="${#fields.hasErrors('displayName')}" th:errors="*{displayName}"></small>
+
+                <label for="email">Email</label>
+                <input id="email" type="email" th:field="*{email}" th:classappend="${#fields.hasErrors('email')} ? 'invalid'">
+                <small class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
+
+                <label for="country">Country</label>
+                <input id="country" type="text" th:field="*{country}">
+
+                <button type="submit" class="btn">Save profile</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Change password</h2>
+            <form th:action="@{/profile/password}" th:object="${passwordForm}" method="post" class="form" novalidate>
+                <label for="currentPassword">Current password</label>
+                <input id="currentPassword" type="password" th:field="*{currentPassword}" autocomplete="current-password"
+                       th:classappend="${#fields.hasErrors('currentPassword')} ? 'invalid'">
+                <small class="field-error" th:if="${#fields.hasErrors('currentPassword')}" th:errors="*{currentPassword}"></small>
+
+                <label for="newPassword">New password</label>
+                <input id="newPassword" type="password" th:field="*{newPassword}" autocomplete="new-password"
+                       th:classappend="${#fields.hasErrors('newPassword')} ? 'invalid'">
+                <small class="field-error" th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}"></small>
+
+                <label for="confirmPassword">Confirm new password</label>
+                <input id="confirmPassword" type="password" th:field="*{confirmPassword}" autocomplete="new-password"
+                       th:classappend="${#fields.hasErrors('confirmPassword')} ? 'invalid'">
+                <small class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></small>
+
+                <button type="submit" class="btn">Change password</button>
+            </form>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

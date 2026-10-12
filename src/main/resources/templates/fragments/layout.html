@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+    <title th:text="${title} + ' · 2048'">2048</title>
+    <link rel="icon" th:href="@{/images/favicon.svg}" type="image/svg+xml">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+<header th:fragment="navbar" class="navbar">
+    <a class="brand" th:href="@{/}"><span class="brand-tile">2048</span><span class="brand-text">Arena</span></a>
+    <nav class="nav-links">
+        <a th:href="@{/leaderboard}">Leaderboard</a>
+        <th:block sec:authorize="isAuthenticated()">
+            <a th:href="@{/play}">Play</a>
+            <a th:href="@{/profile}">My profile</a>
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
+            <form th:action="@{/logout}" method="post" class="inline-form">
+                <button type="submit" class="btn btn-ghost btn-sm">
+                    Log out <span class="muted" sec:authentication="name">user</span>
+                </button>
+            </form>
+        </th:block>
+        <th:block sec:authorize="!isAuthenticated()">
+            <a th:href="@{/login}">Log in</a>
+            <a class="btn btn-sm" th:href="@{/register}">Sign up</a>
+        </th:block>
+    </nav>
+</header>
+
+<div th:fragment="flash">
+    <div class="alert alert-success" th:if="${success}" th:text="${success}">Saved</div>
+    <div class="alert alert-error" th:if="${error}" th:text="${error}">Error</div>
+</div>
+
+<footer th:fragment="footer" class="footer">
+    <span>2048 Arena &middot; Spring Boot, Spring Security, Thymeleaf &amp; MySQL</span>
+</footer>
+
+</body>
+</html>

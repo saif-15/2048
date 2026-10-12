@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${player.nameToShow})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="container">
+    <section class="profile-head">
+        <div class="avatar" th:text="${#strings.toUpperCase(#strings.substring(player.nameToShow, 0, 1))}">P</div>
+        <div>
+            <h1 th:text="${player.nameToShow}">Player</h1>
+            <p class="muted">
+                @<span th:text="${player.username}">user</span>
+                <th:block th:if="${player.country}"> &middot; <span th:text="${player.country}"></span></th:block>
+                &middot; joined <span th:text="${#temporals.format(player.createdAt, 'dd MMM yyyy')}">date</span>
+                <span class="badge" th:if="${player.admin}">admin</span>
+            </p>
+        </div>
+        <div class="profile-actions" th:if="${owner}">
+            <a class="btn" th:href="@{/play}">Play</a>
+            <a class="btn btn-outline" th:href="@{/profile/edit}">Edit profile</a>
+        </div>
+    </section>
+
+    <section class="stat-row">
+        <div class="stat-card highlight"><span class="stat-label">Highest score</span><span class="stat-value" th:text="${stats.highestScore}">0</span></div>
+        <div class="stat-card"><span class="stat-label">Global rank</span><span class="stat-value" th:text="${stats.rank != null ? '#' + stats.rank : '—'}">—</span></div>
+        <div class="stat-card"><span class="stat-label">Highest tile</span><span class="stat-value" th:text="${stats.highestTile}">0</span></div>
+        <div class="stat-card"><span class="stat-label">Games played</span><span class="stat-value" th:text="${stats.gamesPlayed}">0</span></div>
+        <div class="stat-card"><span class="stat-label">Wins (2048)</span><span class="stat-value" th:text="${stats.gamesWon} + ' · ' + ${stats.winRate} + '%'">0</span></div>
+        <div class="stat-card"><span class="stat-label">Average score</span><span class="stat-value" th:text="${stats.averageScore}">0</span></div>
+        <div class="stat-card"><span class="stat-label">Total points</span><span class="stat-value" th:text="${stats.totalScore}">0</span></div>
+        <div class="stat-card"><span class="stat-label">Total moves</span><span class="stat-value" th:text="${stats.totalMoves}">0</span></div>
+    </section>
+
+    <section class="grid-2 wide-right">
+        <div class="card">
+            <h2>Best tile per game</h2>
+            <p class="muted" th:if="${#lists.isEmpty(stats.tileDistribution)}">No games yet.</p>
+            <div class="bars" th:unless="${#lists.isEmpty(stats.tileDistribution)}">
+                <div class="bar-row" th:each="t : ${stats.tileDistribution}">
+                    <span class="tile-chip" th:classappend="'t-' + ${t.tile}" th:text="${t.tile}">2</span>
+                    <div class="bar"><div class="bar-fill" th:style="'width:' + ${t.games * 100 / stats.maxTileCount} + '%'"></div></div>
+                    <span class="bar-count" th:text="${t.games}">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Game history</h2>
+            <p class="muted" th:if="${history.empty}">No games played yet.</p>
+            <div class="table-scroll" th:unless="${history.empty}">
+                <table class="table">
+                    <thead><tr><th>Date</th><th>Score</th><th>Best tile</th><th>Moves</th><th>Time</th><th>Result</th></tr></thead>
+                    <tbody>
+                    <tr th:each="g : ${history.content}">
+                        <td th:text="${#temporals.format(g.playedAt, 'dd MMM yyyy HH:mm')}">date</td>
+                        <td><strong th:text="${g.score}">0</strong>
+                            <span class="badge gold" th:if="${g.score == player.highestScore and g.score > 0}">best</span></td>
+                        <td><span class="tile-chip" th:classappend="'t-' + ${g.highestTile}" th:text="${g.highestTile}">2</span></td>
+                        <td th:text="${g.moves}">0</td>
+                        <td th:text="${g.durationFormatted}">0:00</td>
+                        <td><span th:if="${g.won}" class="badge win">won</span><span th:unless="${g.won}" class="muted">—</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <nav class="pager" th:if="${history.totalPages > 1}">
+                <a th:if="${history.hasPrevious()}" th:href="@{${baseUrl}(page=${history.number - 1})}">&larr; Newer</a>
+                <span th:text="'Page ' + ${history.number + 1} + ' of ' + ${history.totalPages}">Page 1</span>
+                <a th:if="${history.hasNext()}" th:href="@{${baseUrl}(page=${history.number + 1})}">Older &rarr;</a>
+            </nav>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

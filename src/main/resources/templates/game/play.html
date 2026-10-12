@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Play')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="container play-layout">
+    <section id="game" class="game"
+             th:data-username="${user.username}"
+             th:data-best="${user.highestScore}"
+             th:data-submit-url="@{/api/scores}">
+        <div class="game-header">
+            <div class="title-tile">2048</div>
+            <div class="scores">
+                <div class="score-box"><span>Score</span><strong id="score">0</strong></div>
+                <div class="score-box"><span>Best</span><strong id="best" th:text="${user.highestScore}">0</strong></div>
+            </div>
+        </div>
+        <div class="game-sub">
+            <span>Moves <strong id="moves">0</strong></span>
+            <span>Time <strong id="time">0:00</strong></span>
+            <button id="undo" class="btn btn-sm btn-outline" type="button" disabled
+                    title="Take back your last move (U). One undo per move.">Undo</button>
+            <button id="new-game" class="btn btn-sm" type="button"
+                    title="Saves the current game (if you made any moves) and starts a new one">New game</button>
+        </div>
+
+        <div class="board-wrap">
+            <div id="board" class="board" aria-label="2048 board" tabindex="0"></div>
+            <div id="overlay" class="overlay" hidden>
+                <h2 id="overlay-title">Game over!</h2>
+                <p id="overlay-message"></p>
+                <div class="overlay-actions">
+                    <button id="keep-playing" class="btn btn-outline" type="button" hidden>Keep going</button>
+                    <button id="save-score" class="btn btn-outline" type="button" hidden>Save score</button>
+                    <button id="try-again" class="btn" type="button">Play again</button>
+                </div>
+            </div>
+        </div>
+        <p class="muted small center">Use <kbd>&larr;</kbd> <kbd>&uarr;</kbd> <kbd>&rarr;</kbd> <kbd>&darr;</kbd>
+            or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, or swipe on touch screens.
+            <kbd>U</kbd> undoes your last move (once per move).</p>
+    </section>
+
+    <aside class="side">
+        <div class="card">
+            <h3 th:text="'Hi, ' + ${user.nameToShow}">Hi</h3>
+            <ul class="kv">
+                <li><span>Your best</span><strong id="side-best" th:text="${user.highestScore}">0</strong></li>
+                <li><span>Global rank</span><strong id="side-rank" th:text="${rank != null ? '#' + rank : '—'}">—</strong></li>
+                <li><span>Games played</span><strong id="side-games" th:text="${user.gamesPlayed}">0</strong></li>
+                <li><span>Highest tile</span><strong th:text="${user.highestTile}">0</strong></li>
+                <li><span>World record</span><strong th:text="${globalBest}">0</strong></li>
+            </ul>
+        </div>
+        <div class="card">
+            <div class="card-head"><h3>Recent games</h3><a th:href="@{/profile}">All &rarr;</a></div>
+            <p class="muted small" th:if="${#lists.isEmpty(recentGames)}">Finish a game to see it here.</p>
+            <table class="table compact" th:unless="${#lists.isEmpty(recentGames)}">
+                <tr th:each="g : ${recentGames}">
+                    <td><strong th:text="${g.score}">0</strong></td>
+                    <td><span class="tile-chip" th:classappend="'t-' + ${g.highestTile}" th:text="${g.highestTile}">2</span></td>
+                    <td class="muted small" th:text="${#temporals.format(g.playedAt, 'dd MMM HH:mm')}">date</td>
+                </tr>
+            </table>
+        </div>
+    </aside>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/game.js}"></script>
+</body>
+</html>

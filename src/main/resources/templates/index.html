@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Home')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="container">
+    <section class="hero">
+        <div class="hero-text">
+            <h1>Join the numbers.<br>Get to the <span class="accent">2048 tile!</span></h1>
+            <p class="lead">Slide tiles with your arrow keys or a swipe. Every finished game is saved to your
+                profile, and your best score goes on the global leaderboard.</p>
+            <div class="hero-actions">
+                <a sec:authorize="isAuthenticated()" class="btn btn-lg" th:href="@{/play}">Play now</a>
+                <th:block sec:authorize="!isAuthenticated()">
+                    <a class="btn btn-lg" th:href="@{/register}">Create free account</a>
+                    <a class="btn btn-lg btn-outline" th:href="@{/login}">I already have one</a>
+                </th:block>
+            </div>
+        </div>
+        <div class="hero-board" aria-hidden="true">
+            <div class="mini-tile t-2">2</div><div class="mini-tile t-4">4</div><div class="mini-tile t-8">8</div><div class="mini-tile t-16">16</div>
+            <div class="mini-tile"></div><div class="mini-tile t-32">32</div><div class="mini-tile t-64">64</div><div class="mini-tile t-128">128</div>
+            <div class="mini-tile t-256">256</div><div class="mini-tile"></div><div class="mini-tile t-512">512</div><div class="mini-tile t-1024">1024</div>
+            <div class="mini-tile"></div><div class="mini-tile"></div><div class="mini-tile t-2048">2048</div><div class="mini-tile"></div>
+        </div>
+    </section>
+
+    <section class="stat-row">
+        <div class="stat-card"><span class="stat-label">Players</span><span class="stat-value" th:text="${totalPlayers}">0</span></div>
+        <div class="stat-card"><span class="stat-label">Games played</span><span class="stat-value" th:text="${totalGames}">0</span></div>
+        <div class="stat-card"><span class="stat-label">World record</span><span class="stat-value" th:text="${globalBest}">0</span></div>
+    </section>
+
+    <section class="grid-2">
+        <div class="card">
+            <div class="card-head">
+                <h2>Top players</h2>
+                <a th:href="@{/leaderboard}">Full leaderboard &rarr;</a>
+            </div>
+            <p class="muted" th:if="${#lists.isEmpty(topPlayers)}">No games yet. Be the first on the board!</p>
+            <ol class="rank-list" th:unless="${#lists.isEmpty(topPlayers)}">
+                <li th:each="p, it : ${topPlayers}">
+                    <span class="rank-badge" th:classappend="${it.index < 3 ? 'medal-' + it.count : ''}" th:text="${it.count}">1</span>
+                    <a th:href="@{/players/{u}(u=${p.username})}" th:text="${p.nameToShow}">player</a>
+                    <span class="score" th:text="${p.highestScore}">0</span>
+                </li>
+            </ol>
+        </div>
+        <div class="card">
+            <div class="card-head"><h2>Latest games</h2></div>
+            <p class="muted" th:if="${#lists.isEmpty(recentGames)}">Nothing played yet.</p>
+            <ul class="activity" th:unless="${#lists.isEmpty(recentGames)}">
+                <li th:each="g : ${recentGames}">
+                    <a th:href="@{/players/{u}(u=${g.user.username})}" th:text="${g.user.nameToShow}">player</a>
+                    scored <strong th:text="${g.score}">0</strong>
+                    <span class="tile-chip" th:classappend="'t-' + ${g.highestTile}" th:text="${g.highestTile}">128</span>
+                    <span class="muted small" th:text="${#temporals.format(g.playedAt, 'dd MMM HH:mm')}">time</span>
+                </li>
+            </ul>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

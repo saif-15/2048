@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Sign up')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="container narrow">
+    <div class="card auth-card">
+        <h1>Create your account</h1>
+        <p class="muted">Your scores and stats are saved to your profile.</p>
+
+        <form th:action="@{/register}" th:object="${form}" method="post" class="form" novalidate>
+            <label for="username">Username *</label>
+            <input id="username" type="text" th:field="*{username}" autocomplete="username" required
+                   th:classappend="${#fields.hasErrors('username')} ? 'invalid'">
+            <small class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></small>
+
+            <label for="email">Email *</label>
+            <input id="email" type="email" th:field="*{email}" autocomplete="email" required
+                   th:classappend="${#fields.hasErrors('email')} ? 'invalid'">
+            <small class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
+
+            <div class="form-row">
+                <div>
+                    <label for="displayName">Display name</label>
+                    <input id="displayName" type="text" th:field="*{displayName}" placeholder="Shown on the leaderboard">
+                    <small class="field-error" th:if="${#fields.hasErrors('displayName')}" th:errors="*{displayName}"></small>
+                </div>
+                <div>
+                    <label for="country">Country</label>
+                    <input id="country" type="text" th:field="*{country}">
+                </div>
+            </div>
+
+            <label for="password">Password *</label>
+            <input id="password" type="password" th:field="*{password}" autocomplete="new-password" required
+                   th:classappend="${#fields.hasErrors('password')} ? 'invalid'">
+            <small class="hint" th:unless="${#fields.hasErrors('password')}">At least 8 characters, with a letter and a digit.</small>
+            <small class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
+
+            <label for="confirmPassword">Confirm password *</label>
+            <input id="confirmPassword" type="password" th:field="*{confirmPassword}" autocomplete="new-password" required
+                   th:classappend="${#fields.hasErrors('confirmPassword')} ? 'invalid'">
+            <small class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></small>
+
+            <button type="submit" class="btn btn-block">Sign up</button>
+        </form>
+        <p class="switch">Already registered? <a th:href="@{/login}">Log in</a></p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

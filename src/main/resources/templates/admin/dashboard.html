@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Admin')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="container">
+    <h1>Admin dashboard</h1>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <section class="stat-row">
+        <div class="stat-card"><span class="stat-label">Registered users</span><span class="stat-value" th:text="${totalPlayers}">0</span></div>
+        <div class="stat-card"><span class="stat-label">Games played</span><span class="stat-value" th:text="${totalGames}">0</span></div>
+        <div class="stat-card"><span class="stat-label">Games today</span><span class="stat-value" th:text="${gamesToday}">0</span></div>
+        <div class="stat-card"><span class="stat-label">World record</span><span class="stat-value" th:text="${globalBest}">0</span></div>
+    </section>
+
+    <div class="card">
+        <div class="card-head">
+            <h2>Users</h2>
+            <form th:action="@{/admin}" method="get" class="search">
+                <input type="search" name="q" th:value="${q}" placeholder="Search username or email">
+                <button class="btn btn-sm" type="submit">Search</button>
+            </form>
+        </div>
+        <div class="table-scroll">
+            <table class="table">
+                <thead>
+                <tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Best</th><th>Games</th><th>Joined</th><th>Last login</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                <tr th:if="${users.empty}"><td colspan="9" class="muted">No users match.</td></tr>
+                <tr th:each="u : ${users.content}" th:with="self=${#authentication.name == u.username}">
+                    <td><a th:href="@{/players/{n}(n=${u.username})}" th:text="${u.username}">user</a></td>
+                    <td th:text="${u.email}">email</td>
+                    <td><span class="badge" th:classappend="${u.admin} ? 'gold'" th:text="${u.role}">USER</span></td>
+                    <td><span class="badge" th:classappend="${u.enabled} ? 'win' : 'danger'" th:text="${u.enabled} ? 'active' : 'disabled'">active</span></td>
+                    <td th:text="${u.highestScore}">0</td>
+                    <td th:text="${u.gamesPlayed}">0</td>
+                    <td class="small" th:text="${#temporals.format(u.createdAt, 'dd MMM yyyy')}">date</td>
+                    <td class="small" th:text="${u.lastLoginAt != null ? #temporals.format(u.lastLoginAt, 'dd MMM HH:mm') : 'never'}">-</td>
+                    <td class="actions">
+                        <span class="muted small" th:if="${self}">(you)</span>
+                        <th:block th:unless="${self}">
+                            <form th:action="@{/admin/users/{id}/toggle(id=${u.id})}" method="post">
+                                <button class="btn btn-sm btn-outline" type="submit" th:text="${u.enabled} ? 'Disable' : 'Enable'">Disable</button>
+                            </form>
+                            <form th:action="@{/admin/users/{id}/role(id=${u.id})}" method="post">
+                                <input type="hidden" name="role" th:value="${u.admin} ? 'USER' : 'ADMIN'">
+                                <button class="btn btn-sm btn-outline" type="submit" th:text="${u.admin} ? 'Make user' : 'Make admin'">Make admin</button>
+                            </form>
+                            <form th:action="@{/admin/users/{id}/delete(id=${u.id})}" method="post"
+                                  onsubmit="return confirm('Delete this user and all of their games? This cannot be undone.');">
+                                <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+                            </form>
+                        </th:block>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <nav class="pager" th:if="${users.totalPages > 1}">
+            <a th:if="${users.hasPrevious()}" th:href="@{/admin(page=${users.number - 1},q=${q})}">&larr; Prev</a>
+            <span th:text="'Page ' + ${users.number + 1} + ' of ' + ${users.totalPages}">Page 1</span>
+            <a th:if="${users.hasNext()}" th:href="@{/admin(page=${users.number + 1},q=${q})}">Next &rarr;</a>
+        </nav>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
