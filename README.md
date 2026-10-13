@@ -101,8 +101,75 @@ The app currently runs on an EC2 instance (Amazon Linux 2023) as a plain jar, wi
    ```
 8. Open `http://<ec2-public-ip>:8080`.
 
-To deploy a new version: `git pull`, rebuild with `mvn clean package -DskipTests`, stop the running jar
-(<kbd>Ctrl</kbd>+<kbd>C</kbd>) and start it again.
+Running the jar like this stops when you close the SSH session. To keep it running in the background,
+run it as a service (next section).
+
+### Running as a background service (systemd)
+
+systemd starts the app in the background, restarts it if it crashes and starts it again after a reboot.
+These steps assume the default `ec2-user` and the project cloned to `/home/ec2-user/2048`.
+
+1. **Put the settings in an environment file** that only root can read, so the database password is not in the
+   service file or your shell history:
+
+   ```bash
+   sudo mkdir -p /etc/game2048
+   sudo tee /etc/game2048/app.env > /dev/null <<'ENV'
+   DB_USERNAME=root
+   DB_PASSWORD=your-mysql-password
+   ENV
+   sudo chmod 600 /etc/game2048/app.env
+   ```
+2. **Create the service file** `/etc/systemd/system/game2048.service`:
+
+   ```bash
+   sudo tee /etc/systemd/system/game2048.service > /dev/null <<'UNIT'
+   [Unit]
+   Description=2048 Arena (Spring Boot)
+   After=network.target mysqld.service
+   Requires=mysqld.service
+
+   [Service]
+   User=ec2-user
+   WorkingDirectory=/home/ec2-user/2048
+   EnvironmentFile=/etc/game2048/app.env
+   ExecStart=/usr/bin/java -jar /home/ec2-user/2048/target/2048-1.0.jar
+   SuccessExitStatus=143
+   Restart=on-failure
+   RestartSec=10
+
+   [Install]
+   WantedBy=multi-user.target
+   UNIT
+   ```
+
+   `SuccessExitStatus=143` tells systemd that the exit code Java gives when it is stopped normally is not an error.
+3. **Load it, start it and enable it on boot:**
+
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable --now game2048
+   sudo systemctl status game2048
+   ```
+4. **Useful commands:**
+
+   ```bash
+   sudo systemctl stop game2048        # stop the app
+   sudo systemctl start game2048       # start it
+   sudo systemctl restart game2048     # restart it
+   sudo journalctl -u game2048 -f      # follow the app's logs (Ctrl+C to stop following)
+   ```
+
+After changing the service file, run `sudo systemctl daemon-reload` and restart the service.
+
+### Deploying a new version
+
+```bash
+cd ~/2048
+git pull
+mvn clean package -DskipTests
+sudo systemctl restart game2048
+```
 
 ## Tests
 
