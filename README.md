@@ -47,22 +47,44 @@ Other settings: `DB_URL`, `PORT`, `REMEMBER_ME_KEY` (set this to a long random v
 
 ## Deploying on AWS EC2
 
-The app currently runs on an EC2 instance (Ubuntu) as a plain jar, with MySQL on the same machine.
+The app currently runs on an EC2 instance (Amazon Linux 2023) as a plain jar, with MySQL 8.4 on the same machine.
 
 1. **Security group:** allow inbound SSH (22) and the app port (TCP 8080) to the instance.
-2. **Install the tools:**
+2. **Install Git, Java 17 and Maven:**
 
    ```bash
-   sudo apt update
-   sudo apt install -y openjdk-17-jdk git maven mysql-server
+   sudo yum install -y git
+   sudo yum install -y java-17
+   sudo yum install -y maven
    ```
-3. **Give the app a MySQL login.** On Ubuntu, MySQL's `root` user logs in through the OS (`auth_socket`) rather
-   than a password, so the app cannot connect as `root` / `root`. Set a password for it (or create a dedicated user):
+3. **Install MySQL server.** Amazon Linux does not ship MySQL, so add the official MySQL 8.4 repository first:
 
    ```bash
-   sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH caching_sha2_password BY 'your-password';"
+   sudo dnf install -y https://dev.mysql.com/get/mysql84-community-release-el9-1.noarch.rpm
+   sudo rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2023
+   dnf repolist enabled | grep -i mysql        # check the MySQL repo is enabled
+
+   sudo dnf install -y mysql-community-server
    ```
-4. **Get the code and build the jar** (tests are skipped; they run locally):
+4. **Start MySQL** and make it start on boot:
+
+   ```bash
+   systemctl list-unit-files | grep -i mysql   # the service is called mysqld
+   sudo systemctl enable --now mysqld
+   sudo systemctl status mysqld
+   ```
+5. **Secure MySQL and set the root password.** The install generates a temporary root password in the log;
+   use it to run the security script, which asks you to choose a new root password:
+
+   ```bash
+   sudo grep 'temporary password' /var/log/mysqld.log
+   sudo mysql_secure_installation
+   mysql -u root -p                            # check you can log in with the new password
+   ```
+
+   MySQL's password policy requires upper and lower case letters, a digit and a symbol. The app's database
+   (`game2048`) and tables are created automatically on first start, so nothing else is needed here.
+6. **Get the code and build the jar** (tests are skipped; they run locally):
 
    ```bash
    git clone https://github.com/saif-15/2048.git
@@ -71,13 +93,13 @@ The app currently runs on an EC2 instance (Ubuntu) as a plain jar, with MySQL on
    ```
 
    This produces `target/2048-1.0.jar`.
-5. **Run it:**
+7. **Run it** with the MySQL root password from step 5:
 
    ```bash
-   export DB_USERNAME=root DB_PASSWORD=your-password
+   export DB_USERNAME=root DB_PASSWORD='your-mysql-password'
    java -jar target/2048-1.0.jar
    ```
-6. Open `http://<ec2-public-ip>:8080`.
+8. Open `http://<ec2-public-ip>:8080`.
 
 To deploy a new version: `git pull`, rebuild with `mvn clean package -DskipTests`, stop the running jar
 (<kbd>Ctrl</kbd>+<kbd>C</kbd>) and start it again.
