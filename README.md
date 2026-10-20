@@ -1,4 +1,4 @@
- # 2048 Arena
+  # 2048 Arena
 
 A three-tier full-stack 2048 game: **Spring Boot 4 + Spring Security** backend, **Thymeleaf** frontend,
 **MySQL** database.
